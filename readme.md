@@ -265,6 +265,10 @@ Returns Chromium's GPU feature status, drivers and active backend as JSON (the s
 Returns the decoder used by any active media player, including whether it is hardware-accelerated —
 useful for confirming hardware video decode (e.g. `V4L2VideoDecoder`).
 
+#### **GET** /diagnostics/vainfo
+Returns the raw `vainfo` output as plain text, listing the VA-API profiles the installed driver
+exposes. `vainfo` is only bundled on `generic-amd64`; other images report that it is not installed.
+
 ---
 
 ## Remote debugging
@@ -340,7 +344,9 @@ What to expect per target (with `ENABLE_GPU=1`):
   with `isHardwareAccelerated: true`.
 - **Raspberry Pi 5** — the video block is HEVC-only and the distro Chromium ships without proprietary
   codecs, so H.264 falls back to **software decode**. GPU rendering still works.
-- **Generic x86_64 (Intel/AMD)** — VA-API decode via `mesa-va-drivers` (already bundled).
+- **Generic x86_64 (Intel/AMD)** — VA-API hardware decode (e.g. H.264 shows as `VaapiVideoDecoder`
+  with `hardware: true` in `chrome://media-internals`). AMD uses `mesa-va-drivers`; Intel uses its
+  own driver (`intel-media-va-driver`/iHD for Gen8+, `i965-va-driver` for older parts).
 - **Generic AARCH64** — software video decode (no guaranteed kernel decoder).
 
 ## Troubleshooting
