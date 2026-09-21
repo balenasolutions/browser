@@ -1,4 +1,27 @@
 - commits:
+    - subject: Re-enable automatic publishing of browser block
+      hash: 74be32cb9821a38bbf2d919e304b343f178dc317
+      body: >
+        When browser block was moved to experimental org, the flowzone action
+        was
+
+        disabled to avoid publishing the block to balenaCloud. Now that the
+        block
+
+        is being actively maintained under balenasolutions,
+
+        we can re-enable the action to automatically publish the block.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+  version: 2.12.2
+  title: ""
+  date: 2026-09-21T16:27:33.329Z
+- commits:
     - subject: Update GPG signature for the RPi repo
       hash: c3c3e0643ddc4eb664529796a192b9f2a457b6ac
       body: |
