@@ -4,6 +4,7 @@ Provides a hardware accelerated web browser to present internal and external URL
 The `browser` [block](https://docs.balena.io/learn/develop/blocks) is a docker image that runs a [Chromium](https://www.chromium.org/Home) browser as a [Wayland](https://wayland.freedesktop.org/) client, optimized for balenaOS.
 It renders through a companion **display** (compositor) block, and provides an API for dynamic configuration.
 
+> [!IMPORTANT]
 > **Upgrading from v2?** v3 moves from X11 to Wayland and changes the image namespace. See the
 > [v2 → v3 migration guide](docs/migrating-from-v2.md).
 
@@ -91,11 +92,12 @@ The following environment variables allow configuration of the `browser` block:
 |`AUTO_REFRESH`|interval|0 (disabled)|Specifies the number of seconds before the page automatically refreshes|
 |`ENABLE_DIAGNOSTICS`|`0`, `1`|`0`|Enables the `/diagnostics/*` API endpoints, which expose Chromium version, GPU and media-decoder state. Off by default. <br/> `0` = off, `1` = on|
 
+> [!IMPORTANT]
 > **Display geometry (rotation, resolution, scale) is configured on the `display` block,
 > not here.** In v3 the browser is a Wayland client and the compositor owns the screen, so the v2
 > `ROTATE_DISPLAY`, `ROTATE_DELAY`, `TOUCHSCREEN`, `WINDOW_SIZE`, `WINDOW_POSITION`, `SHOW_CURSOR` and
 > `DISPLAY_NUM` variables no longer apply. Set `DISPLAY_ROTATION` / `DISPLAY_RESOLUTION` /
-> `DISPLAY_SCALE` on the `display` service instead — see its README and
+> `DISPLAY_SCALE` on the `display` service instead — see [its README](https://github.com/balenasolutions/display#display-geometry--rotation) and
 > [Migrating from v2](docs/migrating-from-v2.md#7-screen-rotation--display-geometry-moved-to-the-display-block).
 
 ---
@@ -161,114 +163,140 @@ you are migrating from v2 and want to retain the audio block, see
 ---
 
 ## API
-The `browser` block exposes an HTTP API running on port 5011. The following endpoints are available:
 
-#### **GET** /ping
-Returns HTTP 200 if the `browser` block is ready
+The `browser` block serves an HTTP API on port `5011` (set `API_PORT` to change it). The examples
+call it from another machine at `<device-ip>`; on the device itself, use `localhost`.
 
-#### **POST** /refresh
-Refreshes the currently displayed page
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | [`/ping`](#get-ping) | Health check |
+| `GET` | [`/url`](#get-url) | Current URL |
+| `POST` | [`/url`](#post-url) | Display a URL |
+| `POST` | [`/refresh`](#post-refresh) | Reload the page |
+| `POST` | [`/autorefresh/{interval}`](#post-autorefreshinterval) | Reload the page on a timer |
+| `POST` | [`/scan`](#post-scan) | Look again for a local web service |
+| `GET` | [`/kiosk`](#get-kiosk) | Kiosk mode state |
+| `POST` | [`/kiosk/{value}`](#post-kioskvalue) | Turn kiosk mode on or off |
+| `GET` | [`/gpu`](#get-gpu) | GPU acceleration state |
+| `POST` | [`/gpu/{value}`](#post-gpuvalue) | Turn GPU acceleration on or off |
+| `GET` | [`/flags`](#get-flags) | Chromium launch flags |
+| `GET` | [`/version`](#get-version) | Block version |
+| `GET` | [`/screenshot`](#get-screenshot) | PNG of the current page |
+| `GET` | [`/diagnostics/*`](#diagnostics) | Troubleshooting data (off by default) |
 
-#### **POST** /autorefresh/{interval}
-Automatically refreshes the browser window
+### Page
 
-| Value | Description |
-|--------------|-------------|
-| 0 | disable |
-| 1-60 | refresh every `interval` seconds |
+#### `GET /ping`
 
-#### **POST** /scan
-Re-scans the device to find local HTTP or HTTPS services to display. This can be used by the HTTP/S service to notify the `browser` block that it is ready to be displayed, should there be a startup race.
+Returns `200 ok` once the API is running. Use it as a readiness check.
 
-<small><b><i>note:</i></b> *the* `LAUNCH_URL` *must not be set for local services to be detected.*</small>
+#### `GET /url`
 
-#### **GET** /url
-Returns the URL currently being displayed
+Returns the URL currently on screen.
 
-#### **POST** /url
-Sets the URL to be displayed. The URL is set in the request body. Example:
+#### `POST /url`
+
+Displays a new URL. Send the parameters as form data or JSON.
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `url` | yes | Page to display. `http://` is added if the URL has no scheme. |
+| `kiosk` | no | `1` turns kiosk mode on, `0` turns it off. |
+| `gpu` | no | `1` turns GPU acceleration on, `0` turns it off. |
+
+Changing `kiosk` or `gpu` restarts Chromium; otherwise the page changes in place. A request
+without `url` returns `400`.
 
 ```bash
-curl -X POST --data "url=www.balena.io" http://localhost:5011/url
+curl -X POST --data "url=www.balena.io" http://<device-ip>:5011/url
+curl -X POST --data "url=www.balena.io&gpu=0&kiosk=1" http://<device-ip>:5011/url
 ```
 
-You can also pre-set the kiosk and GPU settings as part of a URL put request. Example:
+#### `POST /refresh`
+
+Reloads the current page.
+
+#### `POST /autorefresh/{interval}`
+
+Reloads the page every `interval` seconds. `0` turns automatic refresh off.
 
 ```bash
-curl --data "url=www.balena.io&gpu=0&kiosk=1" http://localhost:5011/url
+curl -X POST http://<device-ip>:5011/autorefresh/30
 ```
 
-#### **GET** /gpu
-Returns the status of the GPU:
+#### `POST /scan`
 
-| Return Value | Description |
-|--------------|-------------|
-| 0 | disabled |
-| 1 | enabled |
+Looks again for a local HTTP or HTTPS service to display. A local service can call this once it
+is ready, to avoid a startup race with the browser.
 
-#### **PUT** /gpu/{value}
-Enables or disables the GPU
+> [!NOTE]
+> Local services are only detected when `LAUNCH_URL` is not set.
 
-| Value | Description |
-|--------------|-------------|
-| 0 | disable |
-| 1 | enable |
+### Display mode
 
-#### **GET** /kiosk
-Returns whether the device is running kiosk mode or not:
+#### `GET /kiosk`
 
-| Return Value | Description |
-|--------------|-------------|
-| 0 | disabled |
-| 1 | enabled |
+Returns `1` if kiosk mode is on, `0` if it is off.
 
-#### **PUT** /kiosk/{value}
-Enables or disables kiosk mode
+#### `POST /kiosk/{value}`
 
-| Value | Description |
-|--------------|-------------|
-| 0 | disable |
-| 1 | enable |
+`1` turns kiosk mode on, `0` turns it off. Chromium restarts to apply the change.
 
-#### **GET** /flags
-Returns the flags Chromium was started with
+```bash
+curl -X POST http://<device-ip>:5011/kiosk/1
+```
 
-#### **GET** /version
-Returns the version of Chromium that `browser` is running
+#### `GET /gpu`
 
-#### **GET** /screenshot
-Captures the current page through the Chromium DevTools Protocol and returns it as a PNG image.
+Returns `1` if GPU acceleration is on, `0` if it is off.
+
+#### `POST /gpu/{value}`
+
+`1` turns GPU acceleration on, `0` turns it off. Chromium restarts to apply the change. Any other
+value returns `400`.
+
+```bash
+curl -X POST http://<device-ip>:5011/gpu/1
+```
+
+### Info
+
+#### `GET /flags`
+
+Returns the command-line flags Chromium was started with.
+
+#### `GET /version`
+
+Returns the `browser` block version.
+
+#### `GET /screenshot`
+
+Returns a PNG of the current page, captured through the Chromium DevTools Protocol.
+
+```bash
+curl -o screenshot.png http://<device-ip>:5011/screenshot
+```
 
 ### Diagnostics
 
-The following endpoints expose internal Chromium state for troubleshooting hardware acceleration.
-They are **disabled by default**; set `ENABLE_DIAGNOSTICS=1` to enable them. When disabled they
-return `404`. While enabled, Chromium also logs to `/tmp/chrome_debug.log` in the container so its
-GPU/decoder/audio errors can be included in the report below.
+These endpoints expose internal Chromium state for troubleshooting hardware acceleration. They are
+**off by default**: set `ENABLE_DIAGNOSTICS=1` to turn them on. While off, they return `404`.
+While on, Chromium also logs to `/tmp/chrome_debug.log` in the container, so the report can
+include its GPU, decoder and audio errors.
 
-#### **GET** /diagnostics/report
-Returns a single, human-readable `.txt` bundling device/host info, runtime config and flags, Chromium
-/ GPU / media state, and recent block + Chromium logs. This is the easiest thing to attach to a bug
-report. Save it with:
+| Method | Endpoint | Returns |
+| --- | --- | --- |
+| `GET` | `/diagnostics/report` | A single text file with device and host info, config and flags, Chromium GPU and media state, and recent block and Chromium logs. Attach it to bug reports. |
+| `GET` | `/diagnostics/version` | Chromium build and block version (JSON) |
+| `GET` | `/diagnostics/gpu` | GPU feature status, drivers and active backend: the same data as `chrome://gpu` (JSON) |
+| `GET` | `/diagnostics/media` | The decoder each active media player uses and whether it is hardware accelerated, such as `V4L2VideoDecoder` (JSON) |
+| `GET` | `/diagnostics/vainfo` | Raw `vainfo` output listing the VA-API profiles the driver exposes (plain text). `vainfo` is only bundled on `generic-amd64`; other images report that it is not installed. |
+
+To save the report:
 
 ```bash
 curl -OJ http://<device-ip>:5011/diagnostics/report
 ```
-
-#### **GET** /diagnostics/version
-Returns the running Chromium build/version (and the block version) as JSON.
-
-#### **GET** /diagnostics/gpu
-Returns Chromium's GPU feature status, drivers and active backend as JSON (the same data as
-`chrome://gpu`).
-
-#### **GET** /diagnostics/media
-Returns the decoder used by any active media player, including whether it is hardware-accelerated —
-useful for confirming hardware video decode (e.g. `V4L2VideoDecoder`).
-
-#### **GET** /diagnostics/vainfo
-Returns the raw `vainfo` output as plain text, listing the VA-API profiles the installed driver
-exposes. `vainfo` is only bundled on `generic-amd64`; other images report that it is not installed.
 
 ---
 
@@ -288,7 +316,8 @@ Set `ENABLE_REMOTE_DEBUG=1` to run a small TCP relay that forwards `REMOTE_DEBUG
 Then add the device as a target in `chrome://inspect/#devices` on another machine, connecting by IP
 address (`<device-ip>:35173`).
 
-> ⚠️ The remote debugging interface has **no authentication or encryption** — anyone who can reach
+> [!CAUTION]
+> The remote debugging interface has **no authentication or encryption** — anyone who can reach
 > the port gets full control of the browser. Only enable it on a trusted/private network, or leave
 > the port unmapped and reach it through an SSH tunnel instead.
 
@@ -315,7 +344,8 @@ support:
 haven't validated them and hardware video decode is not guaranteed (it depends on the device's
 kernel drivers). Use the generic `aarch64`/`amd64` images.
 
-> **Note:** 32-bit Raspberry Pi OS and the balena Fin (`fincm3`) are no longer targeted. Use the
+> [!NOTE]
+> 32-bit Raspberry Pi OS and the balena Fin (`fincm3`) are no longer targeted. Use the
 > 64-bit (`aarch64`) OS on Raspberry Pi.
 
 ---
@@ -332,9 +362,11 @@ Hardware acceleration is controlled by a single master switch with one optional 
 The prefix tells you the default: `ENABLE_*` is off until you set it; `DISABLE_*` is on until you set
 it.
 
-> **Upgrade note:** `ENABLE_GPU=1` continues to give you hardware video decode, as it always has —
+> [!NOTE]
+> **Upgrading?** `ENABLE_GPU=1` continues to give you hardware video decode, as it always has —
 > nothing to change for existing video kiosks.
->
+
+> [!WARNING]
 > Hardware **video encode** is currently **not supported** (e.g. WebRTC capture/streaming may not
 > work — see [#168](https://github.com/balena-io-experimental/browser/issues/168)).
 
