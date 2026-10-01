@@ -1,7 +1,7 @@
-# balena-labs-projects/browser
+# browser
 
 Provides a hardware accelerated web browser to present internal and external URLs on a connected display.
-The `browser` block is a docker image that runs a [Chromium](https://www.chromium.org/Home) browser as a [Wayland](https://wayland.freedesktop.org/) client, optimized for balenaOS.
+The `browser` [block](https://docs.balena.io/learn/develop/blocks) is a docker image that runs a [Chromium](https://www.chromium.org/Home) browser as a [Wayland](https://wayland.freedesktop.org/) client, optimized for balenaOS.
 It renders through a companion **display** (compositor) block, and provides an API for dynamic configuration.
 
 > **Upgrading from v2?** v3 moves from X11 to Wayland and changes the image namespace. See the
@@ -39,7 +39,7 @@ volumes:
 services:
 
   display:
-    image: bh.cr/balenalabs/display-<arch> # companion compositor block; see its README for the image name
+    image: bh.cr/balenasolutions/display-<arch> # companion compositor block; see its README for the image name
     privileged: true
     volumes:
       - display-socket:/run
@@ -47,7 +47,7 @@ services:
       io.balena.features.dbus: '1'
 
   browser:
-    image: bh.cr/balenalabs/browser-<device-type> # e.g. raspberrypi4-64, raspberrypi5, generic-amd64
+    image: bh.cr/balenasolutions/browser-<device-type> # e.g. raspberrypi4-64, raspberrypi5, generic-amd64
     privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
     depends_on:
       - display
@@ -64,7 +64,7 @@ services:
 ```
 
 To pin to a specific [version](CHANGELOG.md) of this block, append the version to the image, e.g.
-`bh.cr/balenalabs/browser-<device-type>/<version>`.
+`bh.cr/balenasolutions/browser-<device-type>/<version>`.
 
 See [here](https://github.com/balena-io/open-balena-registry-proxy#usage) for more details about how to use blocks hosted in balenaCloud.
 
@@ -110,7 +110,7 @@ volumes:
 services:
   browser:
     restart: always
-    image: bh.cr/balenalabs/browser-<device-type>
+    image: bh.cr/balenasolutions/browser-<device-type>
     privileged: true
     volumes:
       - 'settings:/data'
@@ -143,7 +143,7 @@ image that pins ALSA's default device to the card you want — for example the
 Raspberry Pi 4 headphone jack:
 
 ```Dockerfile
-FROM bh.cr/balenalabs/browser-<device-type>
+FROM bh.cr/balenasolutions/browser-<device-type>
 RUN printf 'pcm.!default {\n  type plug\n  slave.pcm "hw:Headphones"\n}\nctl.!default {\n  type hw\n  card Headphones\n}\n' > /etc/asound.conf
 ```
 
