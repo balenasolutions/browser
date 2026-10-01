@@ -17,6 +17,7 @@ It renders through a companion **display** (compositor) block, and provides an A
 - Automatically displays local HTTP (port 80 or 8080) or HTTPS (443) service endpoints.
 - API for remote configuration and management
 - Optional remote debugging from another host
+
 ---
 
 ## Usage
@@ -39,7 +40,7 @@ volumes:
 services:
 
   display:
-    image: bh.cr/balenasolutions/display-<arch> # companion compositor block; see its README for the image name
+    image: bh.cr/balenasolutions/display-<arch> # <arch> is aarch64 or amd64; see https://github.com/balenasolutions/display
     privileged: true
     volumes:
       - display-socket:/run
@@ -348,6 +349,65 @@ What to expect per target (with `ENABLE_GPU=1`):
   with `hardware: true` in `chrome://media-internals`). AMD uses `mesa-va-drivers`; Intel uses its
   own driver (`intel-media-va-driver`/iHD for Gen8+, `i965-va-driver` for older parts).
 - **Generic AARCH64** — software video decode (no guaranteed kernel decoder).
+
+---
+
+## Architecture
+
+The `browser` block is a Wayland client. It does not drive the screen itself: the
+[**display** block](https://github.com/balenasolutions/display) runs the Weston compositor, which owns the outputs and input devices. Weston creates the Wayland
+socket on a volume mounted at `/run` in both containers, and Chromium connects to it. Chromium
+still renders with the GPU and decodes video in hardware itself, then hands finished frames to
+the compositor.
+
+```mermaid
+flowchart TB
+    subgraph BrowserBlock ["browser block (Wayland client)"]
+        Start["start.sh<br/>grants device access,<br/>waits for the socket,<br/>restarts if it is recreated"]
+        Server["server.js (Node.js)<br/>management API :5011"]
+        Chromium["Chromium<br/>--ozone-platform=wayland"]
+
+        Start -- "runs as chromium user" --> Server
+        Server -- "chrome-launcher" --> Chromium
+    end
+
+    subgraph SharedVolume ["display-socket volume (/run)"]
+        Socket[("/run/user/0/<br/>wayland-0")]
+    end
+
+    subgraph DisplayBlock ["display block (Wayland compositor)"]
+        Config["weston.ini generated from<br/>DISPLAY_* variables<br/>(or WESTON_INI_PATH)"]
+        Weston["Weston"]
+
+        Config -- "configures" --> Weston
+    end
+
+    subgraph Hardware ["device hardware"]
+        Sound["sound card<br/>/dev/snd"]
+        VDec["video decoder<br/>/dev/video* (Pi)"]
+        GPU["GPU / DRM<br/>/dev/dri"]
+        Input["input devices<br/>touch, mouse, keyboard"]
+        Outputs["physical displays"]
+    end
+
+    Chromium -- "Wayland protocol" --> Socket
+    Socket -- "client connection" --> Weston
+    Chromium -- "ALSA audio" --> Sound
+    Chromium -- "V4L2 decode" --> VDec
+    Chromium -- "GPU rendering,<br/>VA-API decode (x86)" --> GPU
+    Weston -- "DRM/KMS" --> GPU
+    Weston -- "reads" --> Input
+    GPU -- "scans out to" --> Outputs
+
+    classDef block fill:#ffffff,stroke:#333333,stroke-width:2px,color:#333333;
+    classDef hardware fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#333333;
+    classDef volume fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333333;
+
+    class BrowserBlock,DisplayBlock block;
+    class Hardware hardware;
+    class SharedVolume volume;
+```
+---
 
 ## Troubleshooting
 This section provides some guidance for common issues encountered:

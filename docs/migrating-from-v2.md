@@ -22,7 +22,7 @@ volumes:
 
 services:
   display:
-    image: bh.cr/balenasolutions/display-<arch>   # companion compositor block; see its README for the image name
+    image: bh.cr/balenasolutions/display-<arch>   # <arch> is aarch64 or amd64; see https://github.com/balenasolutions/display
     privileged: true
     volumes:
       - display-socket:/run
