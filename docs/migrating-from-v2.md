@@ -62,6 +62,7 @@ The reason is that the browser is a client whose build differs per target — mo
 Raspberry Pi images use a Chromium built from the Raspberry Pi sources to get hardware video decode.
 Update your `docker-compose.yml` to reference the image for your device type.
 
+> [!IMPORTANT]
 > 32-bit Raspberry Pi OS, the `arm32` images and the balena Fin (`fincm3`) are no longer built. Use
 > the 64-bit (`aarch64`) OS on Raspberry Pi.
 
@@ -153,6 +154,7 @@ services:
     # ... no rotation/geometry variables here anymore
 ```
 
+> [!NOTE]
 > Multi-display setups are not yet supported by the display block; these variables apply to the
 > first connected display.
 
@@ -201,6 +203,7 @@ service, update the env var accordingly (e.g. `ENV PULSE_SERVER=tcp:not-audio:43
 block's [environment variables](https://github.com/balena-labs-projects/audio#environment-variables)
 for the full `AUDIO_OUTPUT` vocabulary (`RPI_HDMI0`, `RPI_HDMI1`, `DAC`, `USB`, `AUTO`, …).
 
+> [!WARNING]
 > The `audio` block is **unmaintained** (no updates or testing in ~4 years). The supported, tested
 > path is the default ALSA-direct one; use the audio block at your own risk. It is also the only way
 > to get Bluetooth audio output, which the default ALSA-direct path does not support.
