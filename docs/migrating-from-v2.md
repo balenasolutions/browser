@@ -22,7 +22,7 @@ volumes:
 
 services:
   display:
-    image: bh.cr/balenalabs/display-<arch>   # companion compositor block; see its README for the image name
+    image: bh.cr/balenasolutions/display-<arch>   # companion compositor block; see its README for the image name
     privileged: true
     volumes:
       - display-socket:/run
@@ -30,7 +30,7 @@ services:
       io.balena.features.dbus: '1'
 
   browser:
-    image: bh.cr/balenalabs/browser-<device-type>
+    image: bh.cr/balenasolutions/browser-<device-type>
     privileged: true
     depends_on:
       - display
@@ -47,8 +47,8 @@ services:
 
 ## 2. New image namespace: per device type, not per architecture
 
-v2 published one image per architecture (`browser-aarch64`, `browser-amd64`, `browser-arm32`). v3
-publishes one image **per device type**:
+v2 published one image per architecture (`browser-aarch64`, `browser-amd64`, `browser-arm32`) under
+`bh.cr/balenalabs`. v3 publishes one image **per device type** under `bh.cr/balenasolutions`:
 
 | v2 image | v3 image |
 | --- | --- |
@@ -138,7 +138,7 @@ After (v3 — rotation on the display block):
 ```yaml
 services:
   display:
-    image: bh.cr/balenalabs/display-<arch>
+    image: bh.cr/balenasolutions/display-<arch>
     privileged: true
     volumes:
       - display-socket:/run
@@ -149,7 +149,7 @@ services:
       DISPLAY_RESOLUTION: 1920x1080
 
   browser:
-    image: bh.cr/balenalabs/browser-<device-type>
+    image: bh.cr/balenasolutions/browser-<device-type>
     # ... no rotation/geometry variables here anymore
 ```
 
@@ -173,7 +173,7 @@ extending the browser image. Add the ALSA→PulseAudio bridge and point it at th
 exactly what the v2 image baked in):
 
 ```Dockerfile
-FROM bh.cr/balenalabs/browser-<device-type>
+FROM bh.cr/balenasolutions/browser-<device-type>
 # Route ALSA output to the audio block's PulseAudio server
 RUN curl -skL https://raw.githubusercontent.com/balena-labs-projects/audio/master/scripts/alsa-bridge/debian-setup.sh | sh
 ENV PULSE_SERVER=tcp:audio:4317
