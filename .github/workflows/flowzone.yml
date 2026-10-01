@@ -25,4 +25,4 @@ jobs:
     secrets: inherit
     with:
       
-      balena_slugs: 'balenasolutions/browser-generic-aarch64,balenasolutions/browser-generic-amd64,balenasolutions/browser-raspberrypi4-64,balenasolutions/browser-raspberrypi5'
+      balena_slugs: 'balenasolutions/browser-generic-aarch64,balenasolutions/browser-generic-amd64,balenasolutions/browser-raspberrypi3-64,balenasolutions/browser-raspberrypi4-64,balenasolutions/browser-raspberrypi5'
