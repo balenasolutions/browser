@@ -5,7 +5,10 @@ set -e
 # Enable user namespaces for Chromium's internal sandbox architecture
 sysctl -w user.max_user_namespaces=10000 || true
 
-echo "balenaLabs browser version: $(<VERSION)"
+# Export the block version so server.js can serve it on /version and in diagnostics.
+# Must happen before the environment whitelist for su is built below.
+export VERSION="$(<VERSION)"
+echo "browser block version: ${VERSION}"
 
 # Secure performance scaling configuration
 echo "Setting CPU Scaling Governor to 'performance'"
