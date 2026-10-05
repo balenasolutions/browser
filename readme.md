@@ -394,48 +394,59 @@ the compositor.
 
 ```mermaid
 flowchart TB
-    subgraph BrowserBlock ["browser block (Wayland client)"]
-        Start["start.sh<br/>grants device access,<br/>waits for the socket,<br/>restarts if it is recreated"]
-        Server["server.js (Node.js)<br/>management API :5011"]
-        Chromium["Chromium<br/>--ozone-platform=wayland"]
+    subgraph BrowserBlock ["<b>browser block</b><br/>Wayland client"]
+        subgraph Procs [" "]
+            direction LR
+            Start["<b>start.sh</b><br/>grants device access,<br/>waits for the socket,<br/>restarts if it is recreated"]
+            Server["<b>server.js</b> (Node.js)<br/>management API :5011"]
+            Chromium["<b>Chromium</b><br/>--ozone-platform=wayland"]
 
-        Start -- "runs as chromium user" --> Server
-        Server -- "chrome-launcher" --> Chromium
+            Start -- "runs as<br/>chromium user" --> Server
+            Server -- "chrome-launcher" --> Chromium
+        end
     end
 
-    subgraph SharedVolume ["display-socket volume (/run)"]
-        Socket[("/run/user/0/<br/>wayland-0")]
+    subgraph SharedVolume ["<b>display-socket volume</b><br/>mounted at /run"]
+        Socket[("Wayland socket")]
     end
 
-    subgraph DisplayBlock ["display block (Wayland compositor)"]
+    subgraph DisplayBlock ["<b>display block</b><br/>Wayland compositor"]
         Config["weston.ini generated from<br/>DISPLAY_* variables<br/>(or WESTON_INI_PATH)"]
-        Weston["Weston"]
+        Weston["<b>Weston</b>"]
 
         Config -- "configures" --> Weston
     end
 
-    subgraph Hardware ["device hardware"]
+    subgraph Hardware ["<b>device hardware</b>"]
         Sound["sound card<br/>/dev/snd"]
-        VDec["video decoder<br/>/dev/video* (Pi)"]
+        VDec["video decoder<br/>/dev/video*"]
         GPU["GPU / DRM<br/>/dev/dri"]
         Input["input devices<br/>touch, mouse, keyboard"]
         Outputs["physical displays"]
     end
 
-    Chromium -- "Wayland protocol" --> Socket
+    BrowserBlock -- "Wayland protocol" --> Socket
     Socket -- "client connection" --> Weston
-    Chromium -- "ALSA audio" --> Sound
-    Chromium -- "V4L2 decode" --> VDec
-    Chromium -- "GPU rendering,<br/>VA-API decode (x86)" --> GPU
+    BrowserBlock -- "ALSA audio" --> Sound
+    BrowserBlock -- "H.264 decode<br/>(Pi 3/4)" --> VDec
+    BrowserBlock -- "GPU rendering,<br/>video decode (x86)" --> GPU
     Weston -- "DRM/KMS" --> GPU
     Weston -- "reads" --> Input
     GPU -- "scans out to" --> Outputs
 
-    classDef block fill:#ffffff,stroke:#333333,stroke-width:2px,color:#333333;
-    classDef hardware fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#333333;
-    classDef volume fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333333;
+    classDef browser fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#0d47a1;
+    classDef browserNode fill:#ffffff,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    classDef ghost fill:none,stroke:none;
+    classDef otherBlock fill:#fafafa,stroke:#9e9e9e,stroke-width:1px,color:#424242;
+    classDef component fill:#ffffff,stroke:#9e9e9e,stroke-width:1px,color:#424242;
+    classDef hardware fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray:4 3,color:#424242;
+    classDef volume fill:#fff8e1,stroke:#f9a825,stroke-width:1px,color:#424242;
 
-    class BrowserBlock,DisplayBlock block;
+    class BrowserBlock browser;
+    class Procs ghost;
+    class Start,Server,Chromium browserNode;
+    class Config,Weston,Socket,Sound,VDec,GPU,Input,Outputs component;
+    class DisplayBlock otherBlock;
     class Hardware hardware;
     class SharedVolume volume;
 ```
