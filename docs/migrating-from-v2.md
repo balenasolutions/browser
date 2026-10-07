@@ -85,6 +85,17 @@ If you overrode `FLAGS` or `EXTRA_FLAGS` in v2, review them. v3 renders through 
 now chosen per device type by the block. Prefer the `ENABLE_GPU` / `DISABLE_VIDEO_DECODE` toggles over
 hand-rolled flags where possible.
 
+> [!WARNING]
+> `FLAGS` **replaces** the block's defaults, including the kiosk flags (`--noerrdialogs`,
+> `--disable-session-crashed-bubble`, autoplay, `--disable-dev-shm-usage`). A v2 value such as
+> `FLAGS=--hide-scrollbars` that was meant to add one switch now drops all of them. Move flags you
+> want to add to `EXTRA_FLAGS`, and keep `FLAGS` only if you really mean to replace the full set.
+>
+> The block always adds `--ozone-platform=wayland` unless `FLAGS` sets its own `--ozone-platform`.
+> There is no X server in v3. If you set `--ozone-platform=x11`, Chromium exits with
+> `Missing X server or $DISPLAY`, and the block fails with `connect ECONNREFUSED 127.0.0.1:9222`
+> and restarts in a loop.
+
 ## 5. Diagnostics
 
 The `/diagnostics/*` endpoints (Chromium version, GPU state, media-decoder state) are new in v3 and

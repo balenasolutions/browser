@@ -54,6 +54,10 @@ let currentUrl = '';
 let flags = [];
 let timer = {};
 
+// Render through the Wayland compositor (display block), never X11/XWayland. The image has no
+// X server, so this is also kept when FLAGS replaces the rest of the defaults.
+const OZONE_WAYLAND_FLAG = '--ozone-platform=wayland';
+
 // Universal Wayland and kiosk-oriented behavior flags applied on every platform,
 // regardless of acceleration toggles.
 const BALENA_BASE_FLAGS = [
@@ -62,7 +66,7 @@ const BALENA_BASE_FLAGS = [
   '--disable-session-crashed-bubble',           // Prevent crash recovery UI from breaking kiosk immersion
   '--check-for-update-interval=31536000',       // Disable update checks
   '--disable-dev-shm-usage',                    // Prevent shared memory exhaustion in Docker
-  '--ozone-platform=wayland'                    // Render through the Wayland compositor (display block), never X11/XWayland
+  OZONE_WAYLAND_FLAG
 ];
 
 /**
@@ -235,6 +239,11 @@ let launchChromium = async function(url) {
   if (null !== FLAGS) {
     // Override completely if the user provides an explicit global FLAGS variable
     flags = FLAGS.split(' ');
+    // Without an ozone platform Chromium falls back to X11 and exits at startup
+    if (!flags.some(flag => flag.startsWith('--ozone-platform='))) {
+      console.log(`FLAGS does not set --ozone-platform; adding ${OZONE_WAYLAND_FLAG}. Use EXTRA_FLAGS to add flags without replacing the defaults.`);
+      flags.push(OZONE_WAYLAND_FLAG);
+    }
   } else {
     flags = composeGpuFlags();
   }
