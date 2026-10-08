@@ -1,4 +1,259 @@
 - commits:
+    - subject: Keep the Wayland platform flag when FLAGS is set
+      hash: abf26bc01a456e093e50ea12ee3cdd09407eddbf
+      body: |
+        FLAGS replaces the whole flag set, which also dropped
+        --ozone-platform=wayland. Chromium then fell back to X11, exited with
+        "Missing X server or $DISPLAY", and the block failed with ECONNREFUSED
+        on the debug port and restarted in a loop. Add the Wayland flag unless
+        FLAGS sets its own --ozone-platform, and document that FLAGS replaces
+        the kiosk defaults so additive flags belong in EXTRA_FLAGS.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Restyle the architecture diagram"
+      hash: b72be3745d907e1a0918efc88f94e7ee8dfc67f0
+      body: |
+        Lay out the browser block horizontally and highlight it, mute the other
+        groups, and give every node explicit colours so it reads in dark mode.
+        Use consistent two-line group titles, label the V4L2 path as H.264
+        decode on Pi 3/4 only, and show the Wayland socket without its
+        configurable path.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Use GitHub alerts in the migration guide"
+      hash: 814080950c5f6849f76b973c65e76eed04547ace
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Restructure API reference and use GitHub alerts"
+      hash: c8ecbdce06991f9b35db85c77f88259874273ce5
+      body: >
+        Add an endpoint overview, group endpoints, and correct /gpu and /kiosk
+        to POST.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Fix /version always returning 'Version not set'
+      hash: f8638c8e2e69024bbef3bb041a593f5f9acb623a
+      body: >
+        start.sh printed the VERSION file but never exported it, so server.js
+        had nothing to serve on /version or in the diagnostics report.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Add architecture diagram and link the display block"
+      hash: 18e9544b9e8b300e1d24af52cf5b2f828562f98d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Point docs and block metadata at balenasolutions
+      hash: 036f235bbe42f0a43660a317317e22e54c7bf07f
+      body: |
+        Use bh.cr/balenasolutions for v3 image references, update the
+        balena.yml usage snippet for the display block, point the repository,
+        logo and package.json URLs at balenasolutions/browser, and drop the
+        balenalabs name from the default landing page.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Add design note on forcing H.264 for YouTube"
+      hash: f913d054748ce92253c44a71eefeb682743ac41a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Enable Intel VA-API hardware video decode on generic-amd64
+      hash: bf745dea18e276d7b9afb121d29c078fa6fb4df3
+      body: |
+        mesa-va-drivers only provides VA-API for AMD/gallium, so on Intel
+        devices libva exposed zero decode profiles and Chromium fell back to
+        software for every codec. Install Intel's own VA driver
+        (intel-media-va-driver for Gen8+, i965-va-driver for older parts) on
+        amd64; libva auto-selects the right one per GPU.
+        Also bundle vainfo and surface its output in the diagnostics report
+        (plus a /diagnostics/vainfo endpoint) so VA profiles can be inspected
+        directly.
+        Verified on i3-7100U (Kaby Lake): H.264 and HEVC now decode via
+        VaapiVideoDecoder (hardware: true).
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Restart Chromium when the display socket is recreated
+      hash: de1e80bfd99cf17148e1a77c7844aaa98caf48cf
+      body: |
+        The display block deletes and recreates the Wayland socket on every
+        restart, which left Chromium disconnected. start.sh now supervises the
+        session and relaunches it when the socket's inode changes.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Play audio directly via ALSA instead of the audio block
+      hash: 39b5bd3048cd2d5b9dae77f41617e467fc63295c
+      body: |
+        The image no longer installs the PulseAudio ALSA bridge or sets
+        PULSE_SERVER. HDMI and the 3.5mm jack work with no extra container.
+        The migration guide shows how to add the audio block back in a derived
+        image.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Remove remaining X11 code
+      hash: ef6c3999fe04fe50a69d1f080ebb0e32b84bbd69
+      body: |
+        Delete startx.sh and the unused X.org config for the Raspberry Pi 5.
+        ROTATE_DISPLAY, ROTATE_DELAY, TOUCHSCREEN, WINDOW_SIZE, WINDOW_POSITION,
+        SHOW_CURSOR and DISPLAY_NUM no longer exist; rotation and resolution
+        are now configured on the display block. The migration guide maps the
+        old variables to the new ones.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Add a diagnostics report endpoint
+      hash: 1552073642d0ed1fcb5bcad085e7a851756693e0
+      body: |
+        /diagnostics/report returns a single text file with device and host
+        info, runtime config, Chromium GPU and media state, and recent block
+        and Chromium logs, for attaching to bug reports. Diagnostics move into
+        src/diagnostics.js.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Remove FORCE_VULKAN
+      hash: 464ae5798fb79b814c3876fe06ad41d53ac078a6
+      body: |
+        Chromium's Vulkan backend does not work with the Ozone Wayland
+        platform. The options for bringing it back after v3 are recorded in
+        docs/todo-vulkan-wayland.md.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Add opt-in remote debugging via a TCP relay
+      hash: aea78cba5e7972d0387c093f3a221593dbed34bb
+      body: |
+        Chromium binds its DevTools endpoint to localhost only and ignores
+        --remote-debugging-address outside headless mode, so mapping the port
+        never made it reachable from another host. With ENABLE_REMOTE_DEBUG=1 a
+        small TCP relay forwards REMOTE_DEBUG_PORT to Chromium. The relay adds
+        no authentication or encryption.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Update supported device types for v3
+      hash: 6f03818bc7ec34cbc183c1b0fd31aec670d3d3e7
+      body: |
+        Drop fincm3 and 32-bit raspberrypi3, add generic-amd64 and
+        generic-aarch64, make raspberrypi4-64 the default device type, and
+        publish a raspberrypi3-64 block.
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: "docs: Rework readme for v3 and add a v2 to v3 migration guide"
+      hash: 804aa7c80b79700a738afec3c1cba096d936ec05
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Run Chromium as a Wayland client instead of X11
+      hash: 87c823b98927905cf3a70096a9f5f9b7b6e83b05
+      body: |
+        The block no longer starts its own X server. Chromium runs with
+        --ozone-platform=wayland against the socket that a companion display
+        (compositor) block exposes on a shared /run volume.
+
+        - Replace the X11 packages and the startx/Xwrapper setup with the Mesa
+          GL/GBM/VA-API drivers
+        - Map the host GIDs of /dev/dri, /dev/video* and /dev/snd/* into the
+          container so the unprivileged chromium user can use the GPU, V4L2
+          video decode and ALSA
+        - ENABLE_GPU now enables GPU rendering and best-effort hardware video
+          decode; DISABLE_VIDEO_DECODE opts out of decode
+        - Add /diagnostics/{version,gpu,media} endpoints, gated behind
+          ENABLE_DIAGNOSTICS (off by default)
+        - Take /screenshot through the DevTools protocol instead of scrot
+        - Move to debian:13.2-slim and chrome-launcher 1.x
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+  version: 3.0.0
+  title: ""
+  date: 2026-10-08T23:10:53.949Z
+- commits:
     - subject: Re-enable automatic publishing of browser block
       hash: 74be32cb9821a38bbf2d919e304b343f178dc317
       body: >

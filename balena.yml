@@ -6,9 +6,9 @@ description: >-
 post-provisioning: >-
   ## Usage instructions
 
-  The browser block renders through a companion display (compositor) block. Include this
-  snippet in your docker-compose.yml file under 'services', and declare the `display-socket`
-  (and, if using PERSISTENT, `settings`) volumes:
+  The browser block renders through a companion display (compositor) block.
+  Include this snippet in your docker-compose.yml file under 'services', and
+  declare the `display-socket` (and, if using PERSISTENT, `settings`) volumes:
 
     ```
     display:
@@ -40,7 +40,7 @@ post-provisioning: >-
     `bh.cr/balenasolutions/browser-<device-type>/<version>`.
 
     Upgrading from v2? See docs/migrating-from-v2.md in the repository.
-version: 2.12.2
+version: 3.0.0
 type: sw.block
 assets:
   repository:
