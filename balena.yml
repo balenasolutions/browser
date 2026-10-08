@@ -4,53 +4,60 @@ description: >-
   connected display
 
 post-provisioning: >-
-  [![balena](https://github.com/balena-labs-projects/browser/actions/workflows/balena.yml/badge.svg)](https://github.com/balena-labs-projects/browser/actions/workflows/balena.yml)
-
   ## Usage instructions
 
-  Include this snippet in your docker-compose.yml file under 'services':
-    
+  The browser block renders through a companion display (compositor) block. Include this
+  snippet in your docker-compose.yml file under 'services', and declare the `display-socket`
+  (and, if using PERSISTENT, `settings`) volumes:
+
     ```
-    browser:
-      image: bh.cr/balenalabs/browser-<arch> # where <arch> is one of aarch64, arm32 or amd64
-      privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
-      network_mode: host
+    display:
+      image: bh.cr/balenasolutions/display-<arch> # <arch> is aarch64 or amd64; see https://github.com/balenasolutions/display
+      privileged: true
       volumes:
-        - 'settings:/data' # Only required if using PERSISTENT flag (see below)
+        - display-socket:/run
+      labels:
+        io.balena.features.dbus: '1'
+
+    browser:
+      image: bh.cr/balenasolutions/browser-<device-type> # one of raspberrypi3-64, raspberrypi4-64, raspberrypi5, generic-aarch64, generic-amd64
+      privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
+      depends_on:
+        - display
+      environment:
+        XDG_RUNTIME_DIR: /run/user/0
+        WAYLAND_DISPLAY: wayland-0
+      devices:
+        - /dev/dri:/dev/dri
+      ports:
+        - '5011:5011' # management API
+      volumes:
+        - display-socket:/run
+        - 'settings:/data' # Only required if using PERSISTENT flag
     ```
 
-    To pin to a specific [version](CHANGELOG.md) of this block use:
+    To pin to a specific version of this block, append it to the image, e.g.
+    `bh.cr/balenasolutions/browser-<device-type>/<version>`.
 
-    ```
-      browser:
-        image: bh.cr/balenalabs/browser-<arch>/<version>
-        privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
-        network_mode: host
-        ports:
-            - '5011' # management API (optional)
-            - '35173' # Chromium debugging port (optional)
-        volumes:
-          - 'settings:/data' # Only required if using PERSISTENT flag (see below)
-    ```
+    Upgrading from v2? See docs/migrating-from-v2.md in the repository.
 version: 2.12.2
 type: sw.block
 assets:
   repository:
     type: blob.asset
     data:
-      url: 'https://github.com/balena-labs-projects/browser'
+      url: 'https://github.com/balenasolutions/browser'
   logo:
     type: blob.asset
     data:
-      url: 'https://raw.githubusercontent.com/balena-labs-projects/browser/master/logo.png'
+      url: 'https://raw.githubusercontent.com/balenasolutions/browser/master/logo.png'
 data:
-  defaultDeviceType: raspberrypi3
+  defaultDeviceType: raspberrypi4-64
   supportedDeviceTypes:
     - raspberrypi4-64
-    - fincm3
-    - raspberrypi3
     - raspberrypi3-64
     - raspberrypi400-64
     - raspberrypi5
     - intel-nuc
-    - genericx86-64-ext
+    - generic-amd64
+    - generic-aarch64
