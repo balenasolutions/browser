@@ -84,7 +84,7 @@ The following environment variables allow configuration of the `browser` block:
 |`FLAGS`|[many!](https://peter.sh/experiments/chromium-command-line-switches/)|N/A|**Replaces** the flags chromium is started with, including the block's kiosk defaults (e.g. `--noerrdialogs`, `--disable-session-crashed-bubble`, `--autoplay-policy=no-user-gesture-required`). Enter a space (\' \') separated list of flags. `--ozone-platform=wayland` is always added unless you set your own `--ozone-platform`. <br/> **Use with caution!** To add flags, use `EXTRA_FLAGS` instead.|
 |`EXTRA_FLAGS`|[many!](https://peter.sh/experiments/chromium-command-line-switches/)|N/A|Adds **additional** flags chromium is started with. Enter a space (\' \') separated list of flags (e.g. `--audio-buffer-size=2048 --audio-output-channels=8`)|
 |`PERSISTENT`|`0`, `1`|`0`|Enables/disables user profile data being stored on the device. **Note: you'll need to create a settings volume. See example above** <br/> `0` = off, `1` = on|
-|`ENABLE_GPU`|`0`, `1`|0|Master hardware-acceleration switch. Enables GPU **rendering** (rasterization, compositing, WebGL/canvas) and, by default, best-effort hardware **video decode**. On Raspberry Pi, decode is handled by the Pi-patched Chromium (verify via `MojoVideoDecoder`/`V4L2VideoDecoder` in `chrome://media-internals`); on x86 it enables the Mesa VA-API path. <br/> `0` = off, `1` = on|
+|`ENABLE_GPU`|`0`, `1`|0|Master hardware-acceleration switch. Enables GPU **rendering** (rasterization, compositing, WebGL/canvas) and, by default, best-effort hardware **video decode**. On Raspberry Pi, decode is handled by the Pi-patched Chromium (verify via `MojoVideoDecoder`/`V4L2VideoDecoder` in `chrome://media-internals`); on x86 it enables the Mesa VA-API path. Raspberry Pi 3/4 decode also needs [device configuration](#raspberry-pi-3--4-device-configuration). <br/> `0` = off, `1` = on|
 |`DISABLE_VIDEO_DECODE`|`0`, `1`|0|Opt **out** of hardware video decode while keeping GPU rendering on. Use on devices where the decode path misbehaves. No effect unless `ENABLE_GPU=1`. <br/> `0` = decode stays on, `1` = decode off|
 |`API_PORT`|port number|5011|Specifies the port number the API runs on|
 |`ENABLE_REMOTE_DEBUG`|`0`, `1`|`0`|Exposes Chromium's remote debugging interface on `REMOTE_DEBUG_PORT` so it can be reached from another host (see [Remote debugging](#remote-debugging)). **No authentication or encryption.** <br/> `0` = off, `1` = on|
@@ -354,8 +354,10 @@ kernel drivers). Use the generic `aarch64`/`amd64` images.
 
 Hardware acceleration is controlled by a single master switch with one optional override:
 
-- **`ENABLE_GPU=1`** turns on GPU rendering **and** best-effort hardware video decode. For most
-  kiosks (including video playback) this is the only variable you need.
+- **`ENABLE_GPU=1`** turns on GPU rendering **and** best-effort hardware video decode. On Raspberry
+  Pi 3 and 4, hardware video decode also needs the
+  [device configuration](#raspberry-pi-3--4-device-configuration) below; elsewhere this is the only
+  variable you need.
 - **`DISABLE_VIDEO_DECODE=1`** opts out of decode while keeping GPU rendering — for devices where the
   decode path misbehaves.
 
@@ -373,14 +375,34 @@ it.
 What to expect per target (with `ENABLE_GPU=1`):
 
 - **Raspberry Pi 4 / Pi 400 / Pi 3 (64-bit)** — H.264 hardware decode via the Pi-patched Chromium
-  (`bcm2835-codec`). Verify in `chrome://media-internals`: the decoder shows as `V4L2VideoDecoder`
-  with `isHardwareAccelerated: true`.
+  (`bcm2835-codec`), once the [device configuration](#raspberry-pi-3--4-device-configuration) is
+  set. Verify in `chrome://media-internals`: the decoder shows as `V4L2VideoDecoder` with
+  `isHardwareAccelerated: true`.
 - **Raspberry Pi 5** — the video block is HEVC-only and the distro Chromium ships without proprietary
   codecs, so H.264 falls back to **software decode**. GPU rendering still works.
 - **Generic x86_64 (Intel/AMD)** — VA-API hardware decode (e.g. H.264 shows as `VaapiVideoDecoder`
   with `hardware: true` in `chrome://media-internals`). AMD uses `mesa-va-drivers`; Intel uses its
   own driver (`intel-media-va-driver`/iHD for Gen8+, `i965-va-driver` for older parts).
 - **Generic AARCH64** — software video decode (no guaranteed kernel decoder).
+
+### Raspberry Pi 3 / 4 device configuration
+
+Hardware H.264 decode on the Pi 3 and Pi 4 / Pi 400 needs more GPU and CMA memory than balenaOS
+reserves by default. Without it, Chromium silently falls back to software decode
+(`FFmpegVideoDecoder`) and 1080p video stutters. Set these
+[Device Configuration variables](https://docs.balena.io/reference/OS/advanced/#modifying-configtxt-using-configuration-variables)
+on the device or fleet:
+
+| Variable | Value |
+| --- | --- |
+| `BALENA_HOST_CONFIG_gpu_mem` | `128` |
+| `BALENA_HOST_CONFIG_dtoverlay` | `"vc4-kms-v3d,cma-320"` |
+
+The supervisor reboots the device to apply them. If you already set `dtoverlay`, add this entry to
+your existing list, e.g. `"vc4-kms-v3d,cma-320","other-overlay"`.
+
+> [!NOTE]
+> On the Pi 3, which has 1 GB of RAM, these settings leave about 100 MB less memory for the OS.
 
 ---
 
