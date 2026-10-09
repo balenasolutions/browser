@@ -40,7 +40,7 @@ post-provisioning: >-
     `bh.cr/balenasolutions/browser-<device-type>/<version>`.
 
     Upgrading from v2? See docs/migrating-from-v2.md in the repository.
-version: 3.0.1
+version: 3.0.2
 type: sw.block
 assets:
   repository:

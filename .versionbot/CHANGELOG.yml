@@ -1,4 +1,41 @@
 - commits:
+    - subject: "docs: Add TODO for running without privileged mode"
+      hash: fd75fe6a21704dede90b9403f2bf1c29454c10d2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Remove unused udev entrypoint
+      hash: ceef7eac842671053b56b9c5bd4198a3da4b59a6
+      body: |
+        start.sh stopped calling entry.sh in the Wayland migration.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+    - subject: Fix the privileged comment in the compose examples
+      hash: a14b6ab189a68e0bfb8fe7e2843ddde099e1d5c3
+      body: |
+        Input is handled by the display block now. The browser needs
+        privileged mode for /dev/snd and /dev/video*.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+  version: 3.0.2
+  title: ""
+  date: 2026-10-09T03:23:06.441Z
+- commits:
     - subject: "docs: Document Pi 3/4 GPU and CMA config for hardware decode"
       hash: a170c03030f11a1e8689aea3efcd68097ef6770d
       body: |
