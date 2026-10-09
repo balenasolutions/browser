@@ -1,4 +1,22 @@
 - commits:
+    - subject: "docs: Document Pi 3/4 GPU and CMA config for hardware decode"
+      hash: a170c03030f11a1e8689aea3efcd68097ef6770d
+      body: |
+        - Add a Raspberry Pi 3 / 4 device configuration section: gpu_mem=128
+          and dtoverlay "vc4-kms-v3d,cma-320"
+        - Without it, Chromium falls back to software decode
+        - Link it from ENABLE_GPU and the per-device decode notes
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+  version: 3.0.1
+  title: ""
+  date: 2026-10-09T02:07:48.656Z
+- commits:
     - subject: Keep the Wayland platform flag when FLAGS is set
       hash: abf26bc01a456e093e50ea12ee3cdd09407eddbf
       body: |
