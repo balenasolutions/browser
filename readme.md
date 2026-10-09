@@ -50,7 +50,7 @@ services:
 
   browser:
     image: bh.cr/balenasolutions/browser-<device-type> # e.g. raspberrypi4-64, raspberrypi5, generic-amd64
-    privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
+    privileged: true # required for sound (/dev/snd) and V4L2 video-decode (/dev/video*) device access
     depends_on:
       - display
     environment:

@@ -7,7 +7,7 @@ services:
 
   browser:
     build: .
-    privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
+    privileged: true # required for sound (/dev/snd) and V4L2 video-decode (/dev/video*) device access
     network_mode: host
     volumes:
       - 'settings:/data' # Only required if using PERSISTENT flag (see below)
