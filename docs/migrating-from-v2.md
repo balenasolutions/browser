@@ -17,12 +17,14 @@ At minimum your compose file must:
 - set `XDG_RUNTIME_DIR` and `WAYLAND_DISPLAY` on the browser service.
 
 ```yaml
+version: '2.4'
+
 volumes:
-  display-socket:
+  display-socket:                    # Shared Wayland runtime directory
 
 services:
   display:
-    image: bh.cr/balenasolutions/display-<arch>   # <arch> is aarch64 or amd64; see https://github.com/balenasolutions/display
+    image: bh.cr/balenasolutions/display-<arch> # <arch> is aarch64 or amd64; see https://github.com/balenasolutions/display
     privileged: true
     volumes:
       - display-socket:/run
@@ -30,8 +32,8 @@ services:
       io.balena.features.dbus: '1'
 
   browser:
-    image: bh.cr/balenasolutions/browser-<device-type>
-    privileged: true
+    image: bh.cr/balenasolutions/browser-<device-type> # e.g. raspberrypi4-64, raspberrypi5, generic-amd64
+    privileged: true # required for sound (/dev/snd) and V4L2 video-decode (/dev/video*) device access
     depends_on:
       - display
     environment:
@@ -40,7 +42,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     ports:
-      - '5011:5011'
+      - '5011:5011' # management API
     volumes:
       - display-socket:/run
 ```
