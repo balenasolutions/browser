@@ -1,4 +1,27 @@
 - commits:
+    - subject: Update Node.js and require patched ca-certificates
+      hash: c28e400a380888cfb07b447e98dd08e0d00cc59c
+      body: |
+        Bump Node.js to 22.23.4, which removes the compromised eMudhra
+        intermediates from its bundled CA store.
+
+        Fail the build if ca-certificates is older than 20250419+deb13u1
+        (DSA-6572-1), which distrusts the affected emSign and Comodo AAA
+        roots. This also invalidates the cached apt layer so the fixed
+        package is pulled from trixie-security.
+
+        See: https://emudhra.we-have-a-problem.com/
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+        signed-off-by: rahul-thakoor <13220877+rahul-thakoor@users.noreply.github.com>
+      author: Rahul Thakoor
+      nested: []
+  version: 3.0.4
+  title: ""
+  date: 2026-10-21T15:48:05.550Z
+- commits:
     - subject: "docs: Add version field to the migration compose example"
       hash: 052c5d70de7e47b0f705961f251fe8f644cdf9e8
       body: |
