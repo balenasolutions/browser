@@ -11,7 +11,7 @@ RUN /usr/src/build/install_chromium "%%BALENA_MACHINE_NAME%%"
 WORKDIR /usr/local
 
 # renovate: datasource=node-version depName=node
-ARG NODE_VERSION=22.21.1
+ARG NODE_VERSION=22.23.4
 
 RUN curl "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-$(dpkg --print-architecture | sed -e 's/amd/x/' -e 's/armhf/armv7l/').tar.gz" \
     | tar xz --strip-components=1 \
