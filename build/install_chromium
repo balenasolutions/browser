@@ -46,3 +46,7 @@ apt-get update && apt-get install -y  --no-install-recommends \
     xinput \
     xterm && \
     rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+
+# eMudhra CA compromise (DSA-6572-1)
+# https://emudhra.we-have-a-problem.com/
+dpkg --compare-versions "$(dpkg-query -W -f='${Version}' ca-certificates)" ge 20250419+deb13u1 || exit 1
